@@ -86,10 +86,17 @@ class PdfEmbedPlugin extends Omeka_Plugin_AbstractPlugin
     public static function embedPdfJs($file, $options)
     {
         $height = (int) $options['height'];
+        $startPage = 1;
+        if(isset($options['media_start_from'])) {
+            $startPage = (int) $options['media_start_from'];
+        }
+        $url = rawurlencode($file->getWebPath('original'));
         $pdfJsViewer = web_path_to('pdf-embed-js/web/viewer.html');
         $hash = (($lang = get_html_lang()) == 'en-US')
-              ? ''
-              : '#locale=' . rawurlencode($lang);
+            ? ''
+            : '#locale=' . rawurlencode($lang);
+        $hash .= '#zoom=page-fit';
+        $hash .= '&page=' . $startPage;
         $attrs['src'] = $pdfJsViewer
             . '?file=' . rawurlencode($file->getWebPath('original'))
             . $hash;
@@ -97,7 +104,10 @@ class PdfEmbedPlugin extends Omeka_Plugin_AbstractPlugin
         $attrs['title'] = $file->original_filename;
         $attrString = tag_attributes($attrs);
 
-        return "<iframe {$attrString}></iframe>";
+        return "<iframe class='pdf-embed' {$attrString}></iframe>" .
+            "<a class='oda-button full-size-reader-link' " .
+            "href='{$pdfJsViewer}?file={$url}#zoom=auto&page={$startPage}'>" .
+            "Full screen reader</a>";
     }
 
     public static function _getSettings()
